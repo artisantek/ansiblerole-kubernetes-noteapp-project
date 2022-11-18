@@ -1,0 +1,91 @@
+- name: deploy minio PV
+  kubernetes.core.k8s:
+    definition:
+      apiVersion: v1
+      kind: PersistentVolume
+      metadata:
+        name: minio-pv # name of PV
+        namespace: default
+      spec:
+        capacity:
+          storage: 1Gi
+        hostPath:
+          path: /tmp/minio
+        storageClassName: ssd
+        accessModes:
+          - ReadWriteOnce
+- name: deploy minio PVC
+  kubernetes.core.k8s:
+    definition:
+      apiVersion: v1
+      kind: PersistentVolumeClaim
+      metadata:
+        name: minio-pvc
+        namespace: default
+      spec:
+        storageClassName: ssd
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: 256Mi
+- name: deploy minio service
+  kubernetes.core.k8s:
+    definition:
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: minio
+        namespace: default
+      spec:
+        selector:
+          app: minio
+        ports:
+          - port: 9000
+            targetPort: 9000
+- name: deploy minio
+  kubernetes.core.k8s:
+    definition:
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: minio
+        namespace: default
+      spec:
+        strategy:
+          type: Recreate
+        selector:
+          matchLabels:
+            app: minio
+        template:
+          metadata:
+            labels:
+              app: minio
+          spec:
+            containers:
+              - name: minio
+                image: minio/minio:RELEASE.2022-10-29T06-21-33Z
+                args:
+                  - server
+                  - /storage
+                env:
+                - name: MINIO_ACCESS_KEY
+                  valueFrom:
+                    configMapKeyRef:
+                      name: db-credentials # Secret Name
+                      key: accesskey
+                - name: MINIO_SECRET_KEY
+                  valueFrom:
+                    configMapKeyRef:
+                      name: db-credentials # Secret Name
+                      key: secretkey          
+                ports:
+                  - containerPort: 9000
+                volumeMounts:
+                  - name: storage
+                    mountPath: /storage
+            volumes:
+              - name: storage
+                persistentVolumeClaim:
+                  claimName: minio-pvc
+              

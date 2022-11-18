@@ -1,0 +1,21 @@
+- name: deploy configmap minio
+  kubernetes.core.k8s:
+    definition:
+      apiVersion: v1
+      kind: ConfigMap
+      metadata:
+        name: db-credentials # Name of the 'Secret'
+        namespace: default
+      data:
+        accesskey: mykey
+        secretkey: mysecret
+- name: deploy configmap minio
+  kubernetes.core.k8s:
+    definition:
+      apiVersion: v1
+      kind: ConfigMap
+      metadata:
+        namespace: default
+        name: minio-host  # name of ConfigMap
+      data:
+        host: minio

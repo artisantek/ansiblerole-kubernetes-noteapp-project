@@ -1,0 +1,5 @@
+---
+- include: conf.yaml
+- include: mongo.yaml
+- include: minio.yaml
+- include: note.yaml

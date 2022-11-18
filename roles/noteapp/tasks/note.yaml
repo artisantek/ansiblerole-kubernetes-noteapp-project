@@ -1,0 +1,59 @@
+- name: deploy note service
+  kubernetes.core.k8s:
+    definition:
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: note
+        namespace: default
+      spec:
+        selector:
+          app: note
+        ports:
+          - port: 80
+            targetPort: 3000
+            nodePort: 31000
+        type: NodePort
+- name: deploy note app
+  kubernetes.core.k8s:
+    definition:
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: note
+        namespace: default
+      spec:
+        replicas: '{{ size }}'
+        selector:
+          matchLabels:
+            app: note
+        template:
+          metadata:
+            labels:
+              app: note
+          spec:
+            containers:
+              - name: note
+                image: adhig93/note
+                ports:
+                  - containerPort: 3000
+                env:
+                  - name: MONGO_URL
+                    value: mongodb://mongo:27017/dev
+                  - name: MINIO_HOST 
+                    valueFrom:
+                      configMapKeyRef:
+                        name: minio-host
+                        key: host
+                  - name: MINIO_ACCESS_KEY
+                    valueFrom:
+                      configMapKeyRef:
+                        name: db-credentials # Secret Name
+                        key: accesskey
+                  - name: MINIO_SECRET_KEY
+                    valueFrom:
+                      configMapKeyRef:
+                        name: db-credentials # Secret Name
+                        key: secretkey
+                imagePullPolicy: Always
+              

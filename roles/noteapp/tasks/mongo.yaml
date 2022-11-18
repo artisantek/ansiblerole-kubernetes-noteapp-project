@@ -14,6 +14,7 @@
         storageClassName: db
         accessModes:
         - ReadWriteOnce
+        persistentVolumeReclaimPolicy: Delete
 - name: deploy mongodb PVC
   kubernetes.core.k8s:
     definition:

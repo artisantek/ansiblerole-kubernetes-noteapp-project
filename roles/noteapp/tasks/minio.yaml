@@ -14,6 +14,7 @@
         storageClassName: ssd
         accessModes:
           - ReadWriteOnce
+        persistentVolumeReclaimPolicy: Delete
 - name: deploy minio PVC
   kubernetes.core.k8s:
     definition:
